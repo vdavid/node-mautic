@@ -3,11 +3,13 @@ A Node.js Mautic API implemented with ES6 + async/await. Tested with Node 10.
 
 ## Installation
 
-(Not published on NPM yet)
+```bash
+$ npm install node-mautic
+```
 
 ## Usage
 
-1. Require the class: `const MauticConnector = require('path/to/MauticConnector');
+1. Require the class: `const MauticConnector = require('node-mautic');
 2. Instantiate an object: `const mauticConnector = new MauticConnector({apiUrl: 'https://your-url.com', username: '...', password: '...'});`
 3. Make calls: `const campaigns = (await mauticConnector.campaigns.listCampaigns()).campaigns;`
 
@@ -20,6 +22,11 @@ A Node.js Mautic API implemented with ES6 + async/await. Tested with Node 10.
  - some documentation
  - 6 Jest tests
 
+## Links
+
+ - NPM: https://www.npmjs.com/package/node-mautic
+ - GitHub: https://github.com/vdavid/node-mautic/
+ 
 ## Thanks
 
  - To https://github.com/sambarnes90/node-mautic/ for the code I started from
