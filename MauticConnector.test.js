@@ -6,16 +6,12 @@ let mauticConnector;
 let testContactId;
 
 beforeAll(() => {
-    const initializer = require('../../app/initializer');
-    initializer.initializeCodeBerryLibrary();
-    const config = require('@codeberry/nodejs').config;
-
     const mauticOptions = {
-        apiUrl: config.get('mautic:API_URL'),
-        username: config.get('mautic:USERNAME'),
-        password: config.get('mautic:PASSWORD'),
+        apiUrl: '{TODO}',
+        username: '{TODO}',
+        password: '{TODO}',
     };
-    const MauticConnector = require('../../app/services/mautic/MauticConnector');
+    const MauticConnector = require('./MauticConnector');
     mauticConnector = new MauticConnector(mauticOptions);
 });
 
