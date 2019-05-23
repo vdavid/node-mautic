@@ -68,7 +68,7 @@ module.exports = class MauticConnector {
         if (!result.errors) {
             return result;
         } else {
-            const logMessage = 'MAUTIC | Mautic API error. | ' + body.errors.map(error => error.code + ': ' + error.message).join(', ');
+            const logMessage = 'MAUTIC | Mautic API error. | ' + result.errors.map(error => error.code + ': ' + error.message).join(', ');
             console.log(logMessage);
             throw new Error(logMessage);
         }
