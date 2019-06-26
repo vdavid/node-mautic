@@ -10,6 +10,11 @@ const request = require('request');
  * @property {string} apiUrl
  * @property {string} username
  * @property {string} password
+ * @property {string} [logLevel] Can be "none", "error" and "verbose". Default is "none".
+ *           "none": No console.log calls will be used.
+ *           "error": Only errors will be logged to the console.
+ *           "verbose": All API calls will be logged to the console.
+ * @property {string} [enableErrorLogging] Default: false
  */
 module.exports = class MauticConnector {
     /**
@@ -19,6 +24,8 @@ module.exports = class MauticConnector {
         this._mauticBaseUrl = options.apiUrl;
         this._username = options.username;
         this._password = options.password;
+        this._logLevel = options.logLevel || "none";
+
         this._initializeMethods();
     }
 
@@ -28,7 +35,7 @@ module.exports = class MauticConnector {
      * @private
      */
     _requestPromisified(requestParameters) {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             request(requestParameters, (error, response, body) => error ? reject(error) : resolve({response, body}));
         });
     }
@@ -39,7 +46,7 @@ module.exports = class MauticConnector {
      * @private
      */
     _addBasicAuthenticationHeader(requestParams) {
-        const base64EncodedUsernameAndPassword = Buffer.from(this._username + ':'+ this._password).toString('base64');
+        const base64EncodedUsernameAndPassword = Buffer.from(this._username + ':' + this._password).toString('base64');
         requestParams.headers = {
             ...(requestParams.headers || {}),
             'Authorization': 'Basic ' + base64EncodedUsernameAndPassword,
@@ -55,16 +62,26 @@ module.exports = class MauticConnector {
      * @private
      */
     async _callApi(params) {
-        console.log('MAUTIC | Calling Mautic API... Method: ' + params.method + ', URL: ' + params.url);
+        if (this._logLevel === "verbose") {
+            console.log('MAUTIC | Calling Mautic API... Method: ' + params.method + ', URL: ' + params.url);
+        }
+        /** @var {string|{errors: Array?}} body */
         let body;
+
+        /* Calls Mautic API */
         try {
             ({body} = await this._requestPromisified(this._addBasicAuthenticationHeader(params)));
         } catch (error) {
-            console.log('MAUTIC | Mautic API HTTP error. | ' + error);
+            if (this._logLevel !== "none") {
+                console.log('MAUTIC | Mautic API HTTP error. | ' + error);
+            }
             throw error;
         }
 
+        /* Parses response */
         const result = (typeof body === 'string') ? JSON.parse(body) : body;
+
+        /* Handles errors */
         if (!result.errors) {
             return result;
         } else {
@@ -73,7 +90,10 @@ module.exports = class MauticConnector {
                     : (body.errors instanceof Array ? body.errors
                         : (result.errors instanceof Error) ? result.errors : []));
             const logMessage = 'MAUTIC | Mautic API error. | ' + errors.map(error => error.code + ': ' + error.message).join(', ');
-            console.log(logMessage);
+
+            if (this._logLevel !== "none") {
+                console.log(logMessage);
+            }
             throw new Error(logMessage);
         }
     }
