@@ -1,0 +1,36 @@
+{
+  "name": "node-mautic",
+  "version": "1.0.1",
+  "description": "A Node.js Mautic API implemented with ES6 + async/await",
+  "main": "MauticConnector.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vdavid/node-mautic.git"
+  },
+  "keywords": [
+    "mautic",
+    "node.js",
+    "es6",
+    "async",
+    "await",
+    "api",
+    "class",
+    "library"
+  ],
+  "author": "David Veszelovszki",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "moment": "^2.22.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.11",
+    "jest": "^24.5.0"
+  },
+  "bugs": {
+    "url": "https://github.com/vdavid/node-mautic/issues"
+  },
+  "homepage": "https://github.com/vdavid/node-mautic#readme"
+}
