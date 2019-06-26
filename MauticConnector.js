@@ -24,7 +24,7 @@ module.exports = class MauticConnector {
 
     /**
      * @param {Object} requestParameters
-     * @returns {Promise<{response: http.IncomingMessage, body: String|Buffer|Object}>} If "json" is true then an Object, otherwise string or Buffer.
+     * @returns {Promise<{response: IncomingMessage, body: String|Buffer|Object}>} If "json" is true then an Object, otherwise string or Buffer.
      * @private
      */
     _requestPromisified(requestParameters) {
@@ -68,7 +68,11 @@ module.exports = class MauticConnector {
         if (!result.errors) {
             return result;
         } else {
-            const logMessage = 'MAUTIC | Mautic API error. | ' + body.errors.map(error => error.code + ': ' + error.message).join(', ');
+            const errors = body.errors instanceof Error ? [body.errors]
+                : (result.errors instanceof Error ? [result.errors]
+                    : (body.errors instanceof Array ? body.errors
+                        : (result.errors instanceof Error) ? result.errors : []));
+            const logMessage = 'MAUTIC | Mautic API error. | ' + errors.map(error => error.code + ': ' + error.message).join(', ');
             console.log(logMessage);
             throw new Error(logMessage);
         }
