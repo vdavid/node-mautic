@@ -88,7 +88,7 @@ module.exports = class MauticConnector {
             const errors = body.errors instanceof Error ? [body.errors]
                 : (result.errors instanceof Error ? [result.errors]
                     : (body.errors instanceof Array ? body.errors
-                        : (result.errors instanceof Error) ? result.errors : []));
+                        : (result.errors instanceof Array) ? result.errors : []));
             const logMessage = 'MAUTIC | Mautic API error. | ' + errors.map(error => error.code + ': ' + error.message).join(', ');
 
             if (this._logLevel !== "none") {
