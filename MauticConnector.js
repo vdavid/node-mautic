@@ -155,6 +155,7 @@ module.exports = class MauticConnector {
         this.assets = {
             getAsset: assetId => this._callApi({method: "GET", url: this._makeUrl("/assets/" + assetId)}),
             listAssets: queryParameters => this._callApi({method: "GET", url: this._makeUrl("/assets", queryParameters)}),
+            createAsset: queryParameters => this._callApi({ method: "POST", url: this._makeUrl("/assets/new"), body: JSON.stringify(queryParameters) }),
         };
 
         // noinspection JSUnusedGlobalSymbols
