@@ -10,8 +10,13 @@ $ npm install node-mautic
 ## Usage
 
 1. Require the class: `const MauticConnector = require('node-mautic');
-2. Instantiate an object: `const mauticConnector = new MauticConnector({apiUrl: 'https://your-url.com', username: '...', password: '...'});`
+
+2. Instantiate an object: `const mauticConnector = new MauticConnector({apiUrl: 'https://your-url.com', username: '...', password: '...' , timeout : 5});`
+*Note : Timeout in seconds
+
 3. Make calls: `const campaigns = (await mauticConnector.campaigns.listCampaigns()).campaigns;`
+
+
 
 ## Features
 
@@ -21,6 +26,7 @@ $ npm install node-mautic
  - uses async/await (no callback hell) 
  - some documentation
  - 6 Jest tests
+
 
 ## Links
 
