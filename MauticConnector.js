@@ -25,6 +25,7 @@ module.exports = class MauticConnector {
         this._username = options.username;
         this._password = options.password;
         this._logLevel = options.logLevel || "none";
+        this._timeout = options.timeout*1000 || 15*1000;
 
         this._initializeMethods();
     }
@@ -35,6 +36,7 @@ module.exports = class MauticConnector {
      * @private
      */
     _requestPromisified(requestParameters) {
+        requestParameters.timeout = this._timeout;
         return new Promise(function (resolve, reject) {
             request(requestParameters, (error, response, body) => error ? reject(error) : resolve({response, body}));
         });
