@@ -11,8 +11,11 @@ $ npm install node-mautic
 
 1. Require the class: `const MauticConnector = require('node-mautic');
 
-2. Instantiate an object: `const mauticConnector = new MauticConnector({apiUrl: 'https://your-url.com', username: '...', password: '...' , timeout : 5});`
-*Note : Timeout in seconds
+2. Instantiate an object: `const mauticConnector = new MauticConnector({apiUrl: 'https://your-url.com', username: '...', password: '...' , timeoutInSeconds: 5});`
+
+  - `apiURL` needs to be just the base URL, so the `/url/` part or anything else is not needed.
+  - `username` and `password` are just a normal Mautic user's username and password. There are no separate API users in Mautic.
+  - `timeoutInSeconds` is optional.
 
 3. Make calls: `const campaigns = (await mauticConnector.campaigns.listCampaigns()).campaigns;`
 

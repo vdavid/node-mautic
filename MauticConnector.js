@@ -15,6 +15,7 @@ const request = require('request');
  *           "error": Only errors will be logged to the console.
  *           "verbose": All API calls will be logged to the console.
  * @property {string} [enableErrorLogging] Default: false
+ * @property {number} [timeoutInSeconds]
  */
 module.exports = class MauticConnector {
     /**
@@ -25,7 +26,7 @@ module.exports = class MauticConnector {
         this._username = options.username;
         this._password = options.password;
         this._logLevel = options.logLevel || "none";
-        this._timeout = options.timeout*1000 || 15*1000;
+        this._timeoutInMilliseconds = options.timeoutInSeconds * 1000;
 
         this._initializeMethods();
     }
@@ -36,7 +37,7 @@ module.exports = class MauticConnector {
      * @private
      */
     _requestPromisified(requestParameters) {
-        requestParameters.timeout = this._timeout;
+        requestParameters.timeout = this._timeoutInMilliseconds;
         return new Promise(function (resolve, reject) {
             request(requestParameters, (error, response, body) => error ? reject(error) : resolve({response, body}));
         });
@@ -157,7 +158,7 @@ module.exports = class MauticConnector {
         this.assets = {
             getAsset: assetId => this._callApi({method: "GET", url: this._makeUrl("/assets/" + assetId)}),
             listAssets: queryParameters => this._callApi({method: "GET", url: this._makeUrl("/assets", queryParameters)}),
-            createAsset: queryParameters => this._callApi({ method: "POST", url: this._makeUrl("/assets/new"), body: JSON.stringify(queryParameters) }),
+            createAsset: queryParameters => this._callApi({method: "POST", url: this._makeUrl("/assets/new"), body: JSON.stringify(queryParameters)}),
         };
 
         // noinspection JSUnusedGlobalSymbols
