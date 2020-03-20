@@ -3,7 +3,7 @@
  *
  * Mautic API docs are here: https://developer.mautic.org/
  */
-const request = require('request');
+const fetch = require('node-fetch');
 
 /**
  * @typedef {object} MauticConnectorConstructorOptions
@@ -32,34 +32,22 @@ module.exports = class MauticConnector {
     }
 
     /**
-     * @param {Object} requestParameters
-     * @returns {Promise<{response: IncomingMessage, body: String|Buffer|Object}>} If "json" is true then an Object, otherwise string or Buffer.
-     * @private
-     */
-    _requestPromisified(requestParameters) {
-        requestParameters.timeout = this._timeoutInMilliseconds;
-        return new Promise(function (resolve, reject) {
-            request(requestParameters, (error, response, body) => error ? reject(error) : resolve({response, body}));
-        });
-    }
-
-    /**
-     * @param {Object} requestParams
-     * @returns {Object}
+     * @param {{method: string, url: string, body: string?}} requestParams
+     * @returns {{method: string, url: string, body: string?, headers: {Authorization: string, "Content-Type": string}}}
      * @private
      */
     _addBasicAuthenticationHeader(requestParams) {
         const base64EncodedUsernameAndPassword = Buffer.from(this._username + ':' + this._password).toString('base64');
-        requestParams.headers = {
-            ...(requestParams.headers || {}),
-            'Authorization': 'Basic ' + base64EncodedUsernameAndPassword,
-            'Content-Type': 'application/json'
+        return {...requestParams, headers:
+                {
+                    'Authorization': 'Basic ' + base64EncodedUsernameAndPassword,
+                    'Content-Type': 'application/json'
+                }
         };
-        return requestParams;
     }
 
     /**
-     * @param {object} params
+     * @param {{method: string, url: string, body: string?}} params
      * @returns {Promise<Object>}
      * @throws {Error} Thrown if Mautic API returns with an HTTP error.
      * @private
@@ -73,7 +61,12 @@ module.exports = class MauticConnector {
 
         /* Calls Mautic API */
         try {
-            ({body} = await this._requestPromisified(this._addBasicAuthenticationHeader(params)));
+            const requestParametersWithAuthenticationHeader = this._addBasicAuthenticationHeader(params);
+            const requestParametersWithTimeout = {...requestParametersWithAuthenticationHeader, timeout: this._timeoutInMilliseconds};
+            delete requestParametersWithTimeout.url;
+            /** @type {Response} */
+            const response = await fetch(params.url, requestParametersWithTimeout);
+            body = await response.text();
         } catch (error) {
             if (this._logLevel !== "none") {
                 console.log('MAUTIC | Mautic API HTTP error. | ' + error);

@@ -1,5 +1,9 @@
 # node-mautic
-A Node.js Mautic API implemented with ES6 + async/await. Tested with Node 10.
+A Node.js Mautic API implemented with ES6 + async/await.
+
+Tested with Node 10 and Node 12.
+
+This package has only 1 dependency ([node-fetch](https://github.com/node-fetch/node-fetch)), which has 0 dependencies.
 
 ## Installation
 
@@ -9,17 +13,34 @@ $ npm install node-mautic
 
 ## Usage
 
-1. Require the class: `const MauticConnector = require('node-mautic');
+1. Require the class
 
-2. Instantiate an object: `const mauticConnector = new MauticConnector({apiUrl: 'https://your-url.com', username: '...', password: '...' , timeoutInSeconds: 5});`
+   ```javascript
+   const MauticConnector = require('node-mautic');
+   ```
 
-  - `apiURL` needs to be just the base URL, so the `/url/` part or anything else is not needed.
-  - `username` and `password` are just a normal Mautic user's username and password. There are no separate API users in Mautic.
-  - `timeoutInSeconds` is optional.
+2. Instantiate the object
 
-3. Make calls: `const campaigns = (await mauticConnector.campaigns.listCampaigns()).campaigns;`
+   ```javascript
+   const mauticConnector = new MauticConnector({
+       apiUrl: 'https://your-url.com',
+       username: '...',
+       password: '...' ,
+       timeoutInSeconds: 5
+   });
+   ```
 
+    - `apiURL` needs to be just the base URL. The `/url/` part of the API URL is to be omitted here.
+    - `username` and `password` are just a normal Mautic user's username and password. There are no separate API users in Mautic.
+    - `timeoutInSeconds` is optional.
 
+3. Make calls
+
+   Example:
+
+   ```javascript
+   const campaigns = (await mauticConnector.campaigns.listCampaigns()).campaigns;
+   ```
 
 ## Features
 

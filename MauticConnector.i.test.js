@@ -1,7 +1,6 @@
 /**
  * Mautic API docs are here: https://developer.mautic.org/
  */
-const moment = require('moment');
 let mauticConnector;
 let testContactId;
 
@@ -24,33 +23,12 @@ test('Mautic can be reached.', async () => {
 });
 
 test('Contact is created correctly', async () => {
-    /* Arrange */
-    const timeOfSubmission = moment();
     // noinspection SpellCheckingInspection
     const fieldKeyToValueMap = {
         full_name: 'Test User',
         firstname: 'Test',
         lastname: 'User',
         email: 'test@user.test',
-        signup_date_time: timeOfSubmission.subtract(2, 'days').format('YYYY-MM-DD HH:mm:ss'),
-        latest_activity_date_time: timeOfSubmission.format('YYYY-MM-DD HH:mm:ss'),
-        full_locale_code: 'xx-XX',
-        coupon_code_used_for_reg: '',
-        is_subscribed_marketing: true,
-        has_active_subscription: false,
-        had_subscription_before: false,
-        subscription_plan_type: 'no-plan',
-        subscription_plan_name: 'NO PLAN!',
-        referrer_code_used: undefined,
-        own_referral_code: 'XXX',
-        referral_event_count: 0,
-        referred_trial_count: 0,
-        referred_paying_count: 0,
-        is_arrived_via_referral: false,
-        total_submission_count: 5,
-        payment_processor_name: 'Braintree',
-        direct_transfer_code: null,
-        last_viewed_plan_id: undefined,
     };
 
     /* Act */
