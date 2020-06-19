@@ -208,6 +208,8 @@ module.exports = class MauticConnector {
             getActivityEventsForContact: (contactId, queryParameters) => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "/activity", queryParameters)}),
             getContactCompanies: contactId => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "/companies")}),
             getContactDevices: contactId => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "/devices")}),
+            addDoNotContact: (contactId, channel, queryParameters) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/dnc/" + channel + "/add"), body: JSON.stringify(queryParameters)}),
+            removeDoNotContact: (contactId, channel) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/dnc/" + channel + "/remove")}),
             addUtmTags: (contactId, queryParameters) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/utm/add"), body: JSON.stringify(queryParameters)}),
             removeUtmTags: (contactId, utmId) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/utm/" + utmId + "/remove")}),
         };
