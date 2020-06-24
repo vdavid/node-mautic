@@ -99,7 +99,7 @@ declare class Mautic {
     createEmail: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     editEmail: (method: Mautic.EditMethod, queryParameters: Mautic.Parameters, emailId: Mautic.EntityID) => Promise<Mautic.Response>
     deleteEmail: (emailId: Mautic.EntityID) => Promise<Mautic.Response>
-    sendEmailToContact: (emailId: Mautic.EntityID, contactId: Mautic.EntityID) => Promise<Mautic.Response>
+    sendEmailToContact: (emailId: Mautic.EntityID, contactId: Mautic.EntityID, queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     sendEmailToSegment: (emailId: Mautic.EntityID) => Promise<Mautic.Response>
   }
 
