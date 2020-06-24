@@ -33,5 +33,6 @@
   "bugs": {
     "url": "https://github.com/vdavid/node-mautic/issues"
   },
-  "homepage": "https://github.com/vdavid/node-mautic#readme"
+  "homepage": "https://github.com/vdavid/node-mautic#readme",
+  "types": "index.d.ts"
 }
