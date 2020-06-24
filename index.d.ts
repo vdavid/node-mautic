@@ -8,17 +8,14 @@ declare namespace Mautic {
 
   type EditMethod = 'PUT' | 'PATCH'
 
+  type Response = any
+
   interface ConnectorConstructorOptions {
     apiUrl: string
     username: string
     password: string
     timeoutInSeconds: number
     logLevel?: ( 'none' | 'error' | 'verbose' )
-  }
-
-  interface Response {
-    status: number
-    data: any
   }
 }
 
