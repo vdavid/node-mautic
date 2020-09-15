@@ -193,8 +193,8 @@ module.exports = class MauticConnector {
         // noinspection JSUnusedGlobalSymbols
         this.contacts = {
             getContact: contactId => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "")}),
-            getContactByEmailAddress: emailAddress => this.contacts.listContacts({search: emailAddress}),
-            listContacts: queryParameters => this._callApi({method: "GET", url: this._makeUrl("/contacts", queryParameters)}),
+            getContactByEmailAddress: emailAddress => this.contacts.listContacts({search: encodeURIComponent(emailAddress)}),
+            listContacts: queryParameters => this._callApi({method: "GET", url: this._makeUrl("/contacts", encodeURIComponent(queryParameters))}),
             createContact: queryParameters => this._callApi({method: "POST", url: this._makeUrl("/contacts/new"), body: JSON.stringify(queryParameters)}),
             editContact: (method, queryParameters, contactId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl("/contacts/" + contactId + "/edit"), body: JSON.stringify(queryParameters)}),
             deleteContact: contactId => this._callApi({method: "DELETE", url: this._makeUrl("/contacts/" + contactId + "/delete")}),
