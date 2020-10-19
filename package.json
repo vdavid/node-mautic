@@ -23,11 +23,11 @@
   "author": "David Veszelovszki",
   "license": "Apache-2.0",
   "dependencies": {
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.1"
   },
   "devDependencies": {
-    "@types/jest": "^25.1.4",
-    "jest": "^25.1.0"
+    "@types/jest": "^26.0.14",
+    "jest": "^26.6.0"
   },
   "bugs": {
     "url": "https://github.com/vdavid/node-mautic/issues"
