@@ -186,8 +186,8 @@ module.exports = class MauticConnector {
         // noinspection JSUnusedGlobalSymbols
         this.contacts = {
             getContact: contactId => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "")}),
-            getContactByEmailAddress: emailAddress => this.contacts.listContacts({search: emailAddress}),
-            listContacts: queryParameters => this._callApi({method: "GET", url: this._makeUrl("/contacts", queryParameters)}),
+            getContactByEmailAddress: emailAddress => this.contacts.listContacts({search: encodeURIComponent(emailAddress)}),
+            listContacts: queryParameters => this._callApi({method: "GET", url: this._makeUrl("/contacts", encodeURIComponent(queryParameters))}),
             createContact: queryParameters => this._callApi({method: "POST", url: this._makeUrl("/contacts/new"), body: JSON.stringify(queryParameters)}),
             editContact: (method, queryParameters, contactId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl("/contacts/" + contactId + "/edit"), body: JSON.stringify(queryParameters)}),
             deleteContact: contactId => this._callApi({method: "DELETE", url: this._makeUrl("/contacts/" + contactId + "/delete")}),
@@ -201,6 +201,8 @@ module.exports = class MauticConnector {
             getActivityEventsForContact: (contactId, queryParameters) => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "/activity", queryParameters)}),
             getContactCompanies: contactId => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "/companies")}),
             getContactDevices: contactId => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "/devices")}),
+            addDoNotContact: (contactId, channel, queryParameters) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/dnc/" + channel + "/add"), body: JSON.stringify(queryParameters)}),
+            removeDoNotContact: (contactId, channel) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/dnc/" + channel + "/remove")}),
             addUtmTags: (contactId, queryParameters) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/utm/add"), body: JSON.stringify(queryParameters)}),
             removeUtmTags: (contactId, utmId) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/utm/" + utmId + "/remove")}),
         };
@@ -226,7 +228,7 @@ module.exports = class MauticConnector {
             createEmail: queryParameters => this._callApi({method: "POST", url: this._makeUrl("/emails/new"), body: JSON.stringify(queryParameters)}),
             editEmail: (method, queryParameters, emailId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl("/emails/" + emailId + "/edit"), body: JSON.stringify(queryParameters)}),
             deleteEmail: emailId => this._callApi({method: "DELETE", url: this._makeUrl("/emails/" + emailId + "/delete")}),
-            sendEmailToContact: (emailId, contactId) => this._callApi({method: "POST", url: this._makeUrl("/emails/" + emailId + "/contact/" + contactId + "/send")}),
+            sendEmailToContact: (emailId, contactId, queryParameters) => this._callApi({method: "POST", url: this._makeUrl("/emails/" + emailId + "/contact/" + contactId + "/send"), body: JSON.stringify(queryParameters || {})}),
             sendEmailToSegment: emailId => this._callApi({method: "POST", url: this._makeUrl("/emails/" + emailId + "/send")})
         };
 
