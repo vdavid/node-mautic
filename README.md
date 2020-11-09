@@ -56,7 +56,10 @@ $ npm install node-mautic
 
  - NPM: https://www.npmjs.com/package/node-mautic
  - GitHub: https://github.com/vdavid/node-mautic/
- 
+
+## Tests
+
+To run the tests, fill the `apiUrl`, `username`, and `password` fields in `MauticConnector.i.test.js`. 
 ## Thanks
 
  - To https://github.com/sambarnes90/node-mautic/ for the code I started from
