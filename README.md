@@ -1,7 +1,8 @@
 # node-mautic
 A Node.js Mautic API implemented with ES6 + async/await.
 
-Tested with Node 10 and Node 12.
+Tested with Node 14 and Mautic 3.1.2.
+(Should work with Node 10 and Mautic 2.7.x as well.)
 
 This package has only 1 dependency ([node-fetch](https://github.com/node-fetch/node-fetch)), which has 0 dependencies.
 
