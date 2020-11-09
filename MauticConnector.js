@@ -6,6 +6,85 @@
 const fetch = require('node-fetch');
 
 /**
+ * @typedef {object} MauticContact
+ * @property {int} id
+ * @property {string} dateAdded
+ * @property {int} createdBy
+ * @property {string} createdByUser
+ * @property {string} dateModified
+ * @property {int} modifiedBy
+ * @property {string} modifiedByUser
+ * @property {object} owner
+ * @property {int} points
+ * @property {string} lastActive In "YYYY-MM-DD HH:mm:ss" format
+ * @property {string} dateIdentified
+ * @property {string} color
+ * @property {Object} ipAddresses
+ * @property {MauticUserFields} fields
+ * @property {{tag: string}[]} tags
+ * @property {UtmFields[]} utmtags
+ */
+
+/**
+ * @typedef {object} MauticUserFields
+ * @property {int} [id] Auto-generated Mautic ID
+ * @property {string} full_name
+ * @property {string} firstname
+ * @property {string} lastname
+ * @property {string} email Email address.
+ * @property {string[]} tags
+ */
+
+/**
+ * @typedef {object} UtmFields
+ * @property {int} [id] Auto-generated Mautic ID
+ * @property {string} [utm_medium]
+ * @property {string} [utm_content]
+ * @property {string} [utm_source]
+ * @property {string} [utm_campaign]
+ * @property {string} [utm_term]
+ * @property {string} [useragent] The browser's UserAgent
+ * @property {string} [url] URL of the visited page
+ * @property {string} [referer] The URL of the referer of the visited page
+ * @property {array|string} [query] Custom query parameters (array or query string)
+ * @property {string} [remotehost] The host name (?)
+ */
+
+/**
+ * @typedef {Object} MauticEmail
+ * @property {int} id ID of the email
+ * @property {string} name Internal name of the email
+ * @property {string} subject Subject of the email
+ * @property {string} fromAddress The from email address if it’s different than the one in the Mautic configuration
+ * @property {string} fromName The from name if it’s different than the one in the Mautic configuration
+ * @property {string} replyToAddress The reply to email address if it’s different than the one in the Mautic configuration
+ * @property {string} bccAddress The BCC email address if it’s different than the one in the Mautic configuration
+ * @property {boolean} isPublished Published state
+ * @property {string|null} publishUp In "YYYY-MM-DD HH:mm:ss" format. Date/time when the email should be published
+ * @property {string|null} publishDown In "YYYY-MM-DD HH:mm:ss" format. Date/time the email should be un published
+ * @property {string} language Language locale of the email
+ * @property {int} readCount Total email read count
+ * @property {int} sentCount Total email sent count
+ * @property {int} revision Email revision
+ * @property {string} customHtml The HTML content of the email
+ * @property {string} plainText The plain text content of the email
+ * @property {string} template The name of the template used as the base for the email
+ * @property {string} emailType If it is a segment (former list) email or template email. Possible values are 'list’ and 'template’
+ * @property {array} translationChildren Array of Page entities for translations of this landing page
+ * @property {object} translationParent The parent/main page if this is a translation
+ * @property {int} variantSentCount Sent count since variantStartDate
+ * @property {int} variantReadCount Read count since variantStartDate
+ * @property {array} variantChildren Array of Email entities for variants of this landing email
+ * @property {object} variantParent The parent/main email if this is a variant (A/B test)
+ * @property {array} variantSettings The properties of the A/B test
+ * @property {string|null} variantStartDate In "YYYY-MM-DD HH:mm:ss" format. The date/time the A/B test began
+ * @property {object|null} category Category information
+ * @property {int} unsubscribeForm Id of the form displayed in the unsubscribe page
+ * @property {object} dynamicContent Dynamic content configuration
+ * @property {array} lists Array of segment IDs which should be added to the segment email
+ */
+
+/**
  * @typedef {object} MauticConnectorConstructorOptions
  * @property {string} apiUrl
  * @property {string} username
@@ -17,7 +96,7 @@ const fetch = require('node-fetch');
  * @property {string} [enableErrorLogging] Default: false
  * @property {number} [timeoutInSeconds]
  */
-module.exports = class MauticConnector {
+class MauticConnector {
     /**
      * @param {MauticConnectorConstructorOptions} options
      */
@@ -25,10 +104,19 @@ module.exports = class MauticConnector {
         this._mauticBaseUrl = options.apiUrl;
         this._username = options.username;
         this._password = options.password;
-        this._logLevel = options.logLevel || "none";
-        this._timeoutInMilliseconds = options.timeoutInSeconds * 1000;
+        this._logLevel = options.logLevel || 'none';
+        this._requestTimeoutInMilliseconds = options.timeoutInSeconds * 1000;
 
         this._initializeMethods();
+    }
+
+    /**
+     * @param {{method: string, url: string, body: string?}} requestParams
+     * @returns {{method: string, url: string, body: string?, timeout: number?}}
+     * @private
+     */
+    _addTimeoutToRequestParameters(requestParams) {
+        return this._requestTimeoutInMilliseconds ? {timeout: this._requestTimeoutInMilliseconds, ...requestParams} : requestParams;
     }
 
     /**
@@ -38,7 +126,8 @@ module.exports = class MauticConnector {
      */
     _addBasicAuthenticationHeader(requestParams) {
         const base64EncodedUsernameAndPassword = Buffer.from(this._username + ':' + this._password).toString('base64');
-        return {...requestParams, headers:
+        return {
+            ...requestParams, headers:
                 {
                     'Authorization': 'Basic ' + base64EncodedUsernameAndPassword,
                     'Content-Type': 'application/json'
@@ -53,44 +142,44 @@ module.exports = class MauticConnector {
      * @private
      */
     async _callApi(params) {
-        if (this._logLevel === "verbose") {
-            console.log('MAUTIC | Calling Mautic API... Method: ' + params.method + ', URL: ' + params.url);
+        if (this._logLevel === 'verbose') {
+            console.debug('MAUTIC | Calling Mautic API... Method: ' + params.method + ', URL: ' + params.url);
         }
         /** @var {string|{errors: Array?}} body */
-        let body;
+        let result = {};
 
         /* Calls Mautic API */
+        let response;
         try {
-            const requestParametersWithAuthenticationHeader = this._addBasicAuthenticationHeader(params);
-            const requestParametersWithTimeout = {...requestParametersWithAuthenticationHeader, timeout: this._timeoutInMilliseconds};
+            const parametersWithOptionalTimeout = this._addTimeoutToRequestParameters(params);
+            const requestParametersWithAuthenticationHeader = this._addBasicAuthenticationHeader(parametersWithOptionalTimeout);
+            const requestParametersWithTimeout = {...requestParametersWithAuthenticationHeader, timeout: this._requestTimeoutInMilliseconds};
             delete requestParametersWithTimeout.url;
             /** @type {Response} */
-            const response = await fetch(params.url, requestParametersWithTimeout);
-            body = await response.text();
+            response = await fetch(params.url, requestParametersWithTimeout);
+            result = await response.json();
         } catch (error) {
-            if (this._logLevel !== "none") {
-                console.log('MAUTIC | Mautic API HTTP error. | ' + error);
+            if (this._logLevel !== 'none') {
+                console.error('MAUTIC | Mautic API HTTP error.', {
+                    method: params.method,
+                    url: params.url,
+                    statusCode: response.statusCode,
+                    errorMessage: error.message,
+                    error
+                });
             }
             throw error;
         }
 
-        /* Parses response */
-        const result = (typeof body === 'string') ? JSON.parse(body) : body;
-
-        /* Handles errors */
         if (!result.errors) {
             return result;
         } else {
-            const errors = body.errors instanceof Error ? [body.errors]
-                : (result.errors instanceof Error ? [result.errors]
-                    : (body.errors instanceof Array ? body.errors
-                        : (result.errors instanceof Array) ? result.errors : []));
-            const logMessage = 'MAUTIC | Mautic API error. | ' + errors.map(error => error.code + ': ' + error.message).join(', ');
-
-            if (this._logLevel !== "none") {
-                console.log(logMessage);
+            if (this._logLevel !== 'none') {
+                console.warning('MAUTIC | Mautic API error.', {params: params, errors: result.errors});
             }
-            throw new Error(logMessage);
+            const errors = result.errors instanceof Error ? [result.errors]
+                : (result.errors instanceof Array ? result.errors : []);
+            throw new Error('MAUTIC | Mautic API error. | Errors: ' + errors.map(error => error.code + ': ' + error.message).join(', '));
         }
     }
 
@@ -101,7 +190,7 @@ module.exports = class MauticConnector {
      */
     _convertQueryParametersToString(queryParameters = {}) {
         queryParameters = (queryParameters && (typeof queryParameters === 'object')) ? queryParameters : {};
-        return Object.keys(queryParameters).map(key => key + '=' + queryParameters[key]).join('&');
+        return Object.keys(queryParameters).map(key => key + '=' + (Array.isArray(queryParameters[key]) ? queryParameters[key].join(',') : queryParameters[key])).join('&');
     }
 
     /**
@@ -112,7 +201,7 @@ module.exports = class MauticConnector {
      */
     _makeUrl(path, queryParameters = {}) {
         const queryString = this._convertQueryParametersToString(queryParameters);
-        return this._mauticBaseUrl + "/api" + path + (queryString ? '?' + queryString : '');
+        return this._mauticBaseUrl + '/api' + path + (queryString ? '?' + queryString : '');
     }
 
     // noinspection JSMethodCanBeStatic
@@ -136,11 +225,24 @@ module.exports = class MauticConnector {
      * @private
      */
     _ensureFieldTypeIsCompanyOrContact(fieldType) {
-        if (fieldType === "company" || fieldType === "contact") {
+        if (fieldType === 'company' || fieldType === 'contact') {
             return fieldType;
         } else {
-            throw new Error("Please enter either 'company' or 'contact' for the Field Type");
+            throw new Error("Please enter either “company” or “contact” for the Field Type");
         }
+    }
+
+    /**
+     * @param {Object<string, any>} queryParameters
+     * @returns {string}
+     * @private
+     */
+    _skipUndefinedValues(queryParameters = {}) {
+        return Object.entries(queryParameters).filter(([, value]) => value !== undefined)
+            .reduce((result, [key, value]) => {
+                result[key] = value;
+                return result;
+            }, {overwriteWithBlank: true});
     }
 
     /**
@@ -186,10 +288,28 @@ module.exports = class MauticConnector {
         // noinspection JSUnusedGlobalSymbols
         this.contacts = {
             getContact: contactId => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "")}),
+            /**
+             * @param {string} emailAddress
+             * @returns {Promise<{total: int, contacts: Object<int, MauticContact>}>}
+             */
             getContactByEmailAddress: emailAddress => this.contacts.listContacts({search: encodeURIComponent(emailAddress)}),
             listContacts: queryParameters => this._callApi({method: "GET", url: this._makeUrl("/contacts", encodeURIComponent(queryParameters))}),
-            createContact: queryParameters => this._callApi({method: "POST", url: this._makeUrl("/contacts/new"), body: JSON.stringify(queryParameters)}),
-            editContact: (method, queryParameters, contactId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl("/contacts/" + contactId + "/edit"), body: JSON.stringify(queryParameters)}),
+            /**
+             * @param {MauticUserFields} queryParameters
+             * @returns {Promise<{contact: MauticContact}>}
+             */
+            createContact: queryParameters => this._callApi({method: "POST", url: this._makeUrl("/contacts/new"), body: JSON.stringify(this._skipUndefinedValues(queryParameters))}),
+            /**
+             * @param {'PUT'|'PATCH'} method
+             * @param {MauticUserFields} queryParameters
+             * @param {int} contactId
+             * @returns {Promise<{contact: MauticContact}>}
+             */
+            editContact: (method, queryParameters, contactId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl("/contacts/" + contactId + "/edit"), body: JSON.stringify(this._skipUndefinedValues(queryParameters))}),
+            /**
+             * @param {int} contactId
+             * @returns {Promise<{contact: MauticContact}>}
+             */
             deleteContact: contactId => this._callApi({method: "DELETE", url: this._makeUrl("/contacts/" + contactId + "/delete")}),
             addPoints: (contactId, queryParameters, points) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/points/plus/" + points + ""), body: queryParameters ? JSON.stringify(queryParameters) : queryParameters}),
             subtractPoints: (contactId, queryParameters, points) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/points/minus/" + points + ""), body: queryParameters ? JSON.stringify(queryParameters) : queryParameters}),
@@ -201,9 +321,19 @@ module.exports = class MauticConnector {
             getActivityEventsForContact: (contactId, queryParameters) => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "/activity", queryParameters)}),
             getContactCompanies: contactId => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "/companies")}),
             getContactDevices: contactId => this._callApi({method: "GET", url: this._makeUrl("/contacts/" + contactId + "/devices")}),
-            addDoNotContact: (contactId, channel, queryParameters) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/dnc/" + channel + "/add"), body: JSON.stringify(queryParameters)}),
-            removeDoNotContact: (contactId, channel) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/dnc/" + channel + "/remove")}),
+            addDoNotContact: (contactId, channel = "email", reason = 3, channelId = null, comments = "") => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/dnc/" + channel + "/add"), body: JSON.stringify({channel, reason, channelId, comments})}),
+            removeDoNotContact: (contactId, channel = "email") => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/dnc/" + channel + "/remove"), body: JSON.stringify({channel})}),
+            /**
+             * @param {int} contactId
+             * @param {UtmFields} queryParameters
+             * @returns {Promise<{contact: MauticContact}>}
+             */
             addUtmTags: (contactId, queryParameters) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/utm/add"), body: JSON.stringify(queryParameters)}),
+            /**
+             * @param {int} contactId
+             * @param {int} utmId
+             * @returns {Promise<{contact: MauticContact}>}
+             */
             removeUtmTags: (contactId, utmId) => this._callApi({method: "POST", url: this._makeUrl("/contacts/" + contactId + "/utm/" + utmId + "/remove")}),
         };
 
@@ -224,9 +354,20 @@ module.exports = class MauticConnector {
         // noinspection JSUnusedGlobalSymbols
         this.emails = {
             getEmail: emailId => this._callApi({method: "GET", url: this._makeUrl("/emails/" + emailId + "")}),
+            /**
+             * @returns {Promise<{emails: MauticEmail[]}>}
+             */
             listEmails: () => this._callApi({method: "GET", url: this._makeUrl("/emails")}),
+            /**
+             * @param {MauticEmail} queryParameters
+             * @returns {Promise<{email: MauticEmail}>}
+             */
             createEmail: queryParameters => this._callApi({method: "POST", url: this._makeUrl("/emails/new"), body: JSON.stringify(queryParameters)}),
             editEmail: (method, queryParameters, emailId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl("/emails/" + emailId + "/edit"), body: JSON.stringify(queryParameters)}),
+            /**
+             * @param {int} emailId
+             * @returns {Promise<undefined>}
+             */
             deleteEmail: emailId => this._callApi({method: "DELETE", url: this._makeUrl("/emails/" + emailId + "/delete")}),
             sendEmailToContact: (emailId, contactId, queryParameters) => this._callApi({method: "POST", url: this._makeUrl("/emails/" + emailId + "/contact/" + contactId + "/send"), body: JSON.stringify(queryParameters || {})}),
             sendEmailToSegment: emailId => this._callApi({method: "POST", url: this._makeUrl("/emails/" + emailId + "/send")})
@@ -341,6 +482,17 @@ module.exports = class MauticConnector {
         };
 
         // noinspection JSUnusedGlobalSymbols
+        this.stats = {
+            getAvailableStatTables: () => this._callApi({method: "GET", url: this._makeUrl("/stats")}),
+            /**
+             * @param {string} tableName
+             * @param {{start?: int, limit?: int, order[0][col]?: string, order[0][dir]?: string, where[0][col]: string, , where[0][expr]: string, where[0][val]: string|int|null}} queryParameters
+             * @returns {Promise<{stats: Object<string, *>[]}>}
+             */
+            getStatsFromATable: (tableName, queryParameters) => this._callApi({method: "GET", url: this._makeUrl("/stats/" + tableName, queryParameters)}),
+        };
+
+        // noinspection JSUnusedGlobalSymbols
         this.stages = {
             getStage: stageId => this._callApi({method: "GET", url: this._makeUrl("/stages/" + stageId + "")}),
             listStages: () => this._callApi({method: "GET", url: this._makeUrl("/stages")}),
@@ -387,4 +539,6 @@ module.exports = class MauticConnector {
             listAvailableWebhookTriggers: () => this._callApi({method: "GET", url: this._makeUrl("/hooks/triggers")})
         };
     }
-};
+}
+
+module.exports = MauticConnector;
