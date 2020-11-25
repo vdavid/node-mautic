@@ -190,7 +190,7 @@ class MauticConnector {
      */
     _convertQueryParametersToString(queryParameters = {}) {
         queryParameters = (queryParameters && (typeof queryParameters === 'object')) ? queryParameters : {};
-        return Object.keys(queryParameters).map(key => key + '=' + (Array.isArray(queryParameters[key]) ? queryParameters[key].join(',') : queryParameters[key])).join('&');
+        return Object.keys(queryParameters).map(key => key + '=' + (Array.isArray(queryParameters[key]) ? encodeURIComponent(queryParameters[key]).join(',') : encodeURIComponent(queryParameters[key]))).join('&');
     }
 
     /**
@@ -292,8 +292,8 @@ class MauticConnector {
              * @param {string} emailAddress
              * @returns {Promise<{total: int, contacts: Object<int, MauticContact>}>}
              */
-            getContactByEmailAddress: emailAddress => this.contacts.listContacts({search: encodeURIComponent(emailAddress)}),
-            listContacts: queryParameters => this._callApi({method: 'GET', url: this._makeUrl('/contacts', encodeURIComponent(queryParameters))}),
+            getContactByEmailAddress: emailAddress => this.contacts.listContacts({search: emailAddress}),
+            listContacts: queryParameters => this._callApi({method: 'GET', url: this._makeUrl('/contacts', queryParameters)}),
             /**
              * @param {MauticUserFields} queryParameters
              * @returns {Promise<{contact: MauticContact}>}
