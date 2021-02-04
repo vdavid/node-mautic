@@ -175,7 +175,7 @@ class MauticConnector {
             return result;
         } else {
             if (this._logLevel !== 'none') {
-                console.warning('MAUTIC | Mautic API error.', {params: params, errors: result.errors});
+                console.warn('MAUTIC | Mautic API error.', {params: params, errors: result.errors});
             }
             const errors = result.errors instanceof Error ? [result.errors]
                 : (result.errors instanceof Array ? result.errors : []);
