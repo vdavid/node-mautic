@@ -39,7 +39,7 @@ declare class Mautic {
 
   categories: {
     getCategory: (categoryId: Mautic.EntityID) => Promise<Mautic.Response>
-    listContactCategories: () => Promise<Mautic.Response>,
+    listContactCategories: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>,
     createCategory: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     editCategory: (method: Mautic.EditMethod, queryParameters: Mautic.Parameters, categoryId: Mautic.EntityID) => Promise<Mautic.Response>
     deleteCategory: (categoryId: Mautic.EntityID) => Promise<Mautic.Response>
@@ -92,7 +92,7 @@ declare class Mautic {
 
   emails: {
     getEmail: (emailId: Mautic.EntityID) => Promise<Mautic.Response>
-    listEmails: () => Promise<Mautic.Response>
+    listEmails: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     createEmail: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     editEmail: (method: Mautic.EditMethod, queryParameters: Mautic.Parameters, emailId: Mautic.EntityID) => Promise<Mautic.Response>
     deleteEmail: (emailId: Mautic.EntityID) => Promise<Mautic.Response>
