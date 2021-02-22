@@ -39,7 +39,7 @@ declare class Mautic {
 
   categories: {
     getCategory: (categoryId: Mautic.EntityID) => Promise<Mautic.Response>
-    listContactCategories: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>,
+    listContactCategories: () => Promise<Mautic.Response>,
     createCategory: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     editCategory: (method: Mautic.EditMethod, queryParameters: Mautic.Parameters, categoryId: Mautic.EntityID) => Promise<Mautic.Response>
     deleteCategory: (categoryId: Mautic.EntityID) => Promise<Mautic.Response>
@@ -47,7 +47,8 @@ declare class Mautic {
 
   companies: {
     getCompany: (companyId: Mautic.EntityID) => Promise<Mautic.Response>
-    listContactCompanies: () => Promise<Mautic.Response>
+    listContactCompanies: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
+    queryCompanies: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     createCompany: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     editCompany: (method: Mautic.EditMethod, queryParameters: Mautic.Parameters, companyId: Mautic.EntityID) => Promise<Mautic.Response>
     deleteCompany: (companyId: Mautic.EntityID) => Promise<Mautic.Response>
@@ -59,6 +60,7 @@ declare class Mautic {
     getContact: (contactId: Mautic.EntityID) => Promise<Mautic.Response>
     getContactByEmailAddress: (lemailAddress: string) => Promise<Mautic.Response>
     listContacts: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
+    queryContacts: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     createContact: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     editContact: (method: Mautic.EditMethod, queryParameters: Mautic.Parameters, contactId: Mautic.EntityID) => Promise<Mautic.Response>
     deleteContact: (contactId: Mautic.EntityID) => Promise<Mautic.Response>
@@ -93,6 +95,7 @@ declare class Mautic {
   emails: {
     getEmail: (emailId: Mautic.EntityID) => Promise<Mautic.Response>
     listEmails: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
+    queryEmails: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     createEmail: (queryParameters: Mautic.Parameters) => Promise<Mautic.Response>
     editEmail: (method: Mautic.EditMethod, queryParameters: Mautic.Parameters, emailId: Mautic.EntityID) => Promise<Mautic.Response>
     deleteEmail: (emailId: Mautic.EntityID) => Promise<Mautic.Response>
