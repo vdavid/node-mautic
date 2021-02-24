@@ -4,6 +4,7 @@
  * Mautic API docs are here: https://developer.mautic.org/
  */
 const fetch = require('node-fetch');
+const HttpQueryHelper = require('./HttpQueryHelper');
 
 /**
  * @typedef {object} MauticContact
@@ -106,33 +107,9 @@ class MauticConnector {
         this._password = options.password;
         this._logLevel = options.logLevel || 'none';
         this._requestTimeoutInMilliseconds = options.timeoutInSeconds * 1000;
+        this._httpQueryHelper = new HttpQueryHelper();
 
         this._initializeMethods();
-    }
-
-    /**
-     * @param {{method: string, url: string, body: string?}} requestParams
-     * @returns {{method: string, url: string, body: string?, timeout: number?}}
-     * @private
-     */
-    _addTimeoutToRequestParameters(requestParams) {
-        return this._requestTimeoutInMilliseconds ? {timeout: this._requestTimeoutInMilliseconds, ...requestParams} : requestParams;
-    }
-
-    /**
-     * @param {{method: string, url: string, body: string?}} requestParams
-     * @returns {{method: string, url: string, body: string?, headers: {Authorization: string, "Content-Type": string}}}
-     * @private
-     */
-    _addBasicAuthenticationHeader(requestParams) {
-        const base64EncodedUsernameAndPassword = Buffer.from(this._username + ':' + this._password).toString('base64');
-        return {
-            ...requestParams, headers:
-                {
-                    'Authorization': 'Basic ' + base64EncodedUsernameAndPassword,
-                    'Content-Type': 'application/json'
-                }
-        };
     }
 
     /**
@@ -151,8 +128,8 @@ class MauticConnector {
         /* Calls Mautic API */
         let response;
         try {
-            const parametersWithOptionalTimeout = this._addTimeoutToRequestParameters(params);
-            const requestParametersWithAuthenticationHeader = this._addBasicAuthenticationHeader(parametersWithOptionalTimeout);
+            const parametersWithOptionalTimeout = this._httpQueryHelper.addTimeoutToRequestParameters(params, this._requestTimeoutInMilliseconds);
+            const requestParametersWithAuthenticationHeader = this._httpQueryHelper.addBasicAuthenticationHeader(parametersWithOptionalTimeout, this._username, this._password);
             const requestParametersWithTimeout = {...requestParametersWithAuthenticationHeader, timeout: this._requestTimeoutInMilliseconds};
             delete requestParametersWithTimeout.url;
             /** @type {Response} */
@@ -184,36 +161,13 @@ class MauticConnector {
     }
 
     /**
-     * @param {Object<string, string>?} queryParameters As key-value pairs.
-     * @returns {string} The query string, without the question mark.
-     * @private
-     */
-    _convertQueryParametersToString(queryParameters = {}) {
-        queryParameters = (queryParameters && (typeof queryParameters === 'object')) ? queryParameters : {};
-        return Object.keys(queryParameters).map(key => key + '=' + (Array.isArray(queryParameters[key]) ? encodeURIComponent(queryParameters[key]).join(',') : encodeURIComponent(queryParameters[key]))).join('&');
-    }
-    /**
-     * @param {Object<string, string>?} queryParameters As key-value pairs.
-     * @returns {string} The query string, without the question mark.
-     * @private
-     */
-    _convertQueryParametersToString2(queryParameters = {}) {
-        queryParameters = (queryParameters && (typeof queryParameters === 'object')) ? queryParameters : {};
-        let stringParams = "";
-        let index = 0;
-        for(let key in queryParameters) {
-            stringParams += `where[${index}][col]=${key}&where[${index}][val]=${queryParameters[key]}&where[${index}][expr]=eq&`
-        }
-        return stringParams;
-    }
-    /**
      * @param {string} path The part after the domain and before the query string.
      * @param {Object<string, string>?} queryParameters As key-value pairs.
      * @returns {string} The assembled URL.
      * @private
      */
     _makeUrl(path, queryParameters = {}) {
-        const queryString = this._convertQueryParametersToString(queryParameters);
+        const queryString = this._httpQueryHelper.convertQueryParametersToString(queryParameters);
         return this._mauticBaseUrl + '/api' + path + (queryString ? '?' + queryString : '');
     }
 
@@ -224,7 +178,7 @@ class MauticConnector {
      * @private
      */
     _makeQueryUrl(path, queryParameters = {}) {
-        const queryString = this._convertQueryParametersToString2(queryParameters);
+        const queryString = this._httpQueryHelper.convertQueryParametersToStringForQuery(queryParameters);
         return this._mauticBaseUrl + '/api' + path + (queryString ? '?' + queryString : '');
     }
 
@@ -254,19 +208,6 @@ class MauticConnector {
         } else {
             throw new Error('Please enter either “company” or “contact” for the Field Type');
         }
-    }
-
-    /**
-     * @param {Object<string, any>} queryParameters
-     * @returns {string}
-     * @private
-     */
-    _skipUndefinedValues(queryParameters = {}) {
-        return Object.entries(queryParameters).filter(([, value]) => value !== undefined)
-            .reduce((result, [key, value]) => {
-                result[key] = value;
-                return result;
-            }, {overwriteWithBlank: true});
     }
 
     /**
@@ -324,14 +265,14 @@ class MauticConnector {
              * @param {MauticUserFields} queryParameters
              * @returns {Promise<{contact: MauticContact}>}
              */
-            createContact: queryParameters => this._callApi({method: 'POST', url: this._makeUrl('/contacts/new'), body: JSON.stringify(this._skipUndefinedValues(queryParameters))}),
+            createContact: queryParameters => this._callApi({method: 'POST', url: this._makeUrl('/contacts/new'), body: JSON.stringify(this._httpQueryHelper.removeUndefinedValues({...queryParameters, overwriteWithBlank: true}))}),
             /**
              * @param {'PUT'|'PATCH'} method
              * @param {MauticUserFields} queryParameters
              * @param {int} contactId
              * @returns {Promise<{contact: MauticContact}>}
              */
-            editContact: (method, queryParameters, contactId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl('/contacts/' + contactId + '/edit'), body: JSON.stringify(this._skipUndefinedValues(queryParameters))}),
+            editContact: (method, queryParameters, contactId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl('/contacts/' + contactId + '/edit'), body: JSON.stringify(this._httpQueryHelper.removeUndefinedValues({...queryParameters, overwriteWithBlank: true}))}),
             /**
              * @param {int} contactId
              * @returns {Promise<{contact: MauticContact}>}
@@ -383,7 +324,7 @@ class MauticConnector {
             /**
              * @returns {Promise<{emails: MauticEmail[]}>}
              */
-            listEmails: (queryParameters) => this._callApi({method: 'GET', url: this._makeUrl('/emails')}),
+            listEmails: () => this._callApi({method: 'GET', url: this._makeUrl('/emails')}),
             /**
              * @returns {Promise<{emails: MauticEmail[]}>}
              */
@@ -406,7 +347,7 @@ class MauticConnector {
         // noinspection JSUnusedGlobalSymbols
         this.fields = {
             getField: (fieldType, fieldId) => this._callApi({method: 'GET', url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType) + '/' + fieldId + '')}),
-            listContactFields: (fieldType, queryParameters) => this._callApi({method: 'GET', url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType))}),
+            listContactFields: (fieldType) => this._callApi({method: 'GET', url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType))}),
             createField: (fieldType, queryParameters) => this._callApi({method: 'POST', url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType) + '/new'), body: JSON.stringify(queryParameters)}),
             editField: (method, fieldType, queryParameters, fieldId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType) + '/' + fieldId + '/edit'), body: JSON.stringify(queryParameters)}),
             deleteField: (fieldType, fieldId) => this._callApi({method: 'DELETE', url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType) + '/' + fieldId + '/delete')})

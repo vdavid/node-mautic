@@ -1,6 +1,6 @@
 {
   "name": "node-mautic",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "A Node.js Mautic API implemented with ES6 + async/await",
   "main": "MauticConnector.js",
   "scripts": {
