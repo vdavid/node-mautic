@@ -192,7 +192,20 @@ class MauticConnector {
         queryParameters = (queryParameters && (typeof queryParameters === 'object')) ? queryParameters : {};
         return Object.keys(queryParameters).map(key => key + '=' + (Array.isArray(queryParameters[key]) ? encodeURIComponent(queryParameters[key]).join(',') : encodeURIComponent(queryParameters[key]))).join('&');
     }
-
+    /**
+     * @param {Object<string, string>?} queryParameters As key-value pairs.
+     * @returns {string} The query string, without the question mark.
+     * @private
+     */
+    _convertQueryParametersToString2(queryParameters = {}) {
+        queryParameters = (queryParameters && (typeof queryParameters === 'object')) ? queryParameters : {};
+        let stringParams = "";
+        let index = 0;
+        for(let key in queryParameters) {
+            stringParams += `where[${index}][col]=${key}&where[${index}][val]=${queryParameters[key]}&where[${index}][expr]=eq&`
+        }
+        return stringParams;
+    }
     /**
      * @param {string} path The part after the domain and before the query string.
      * @param {Object<string, string>?} queryParameters As key-value pairs.
@@ -201,6 +214,17 @@ class MauticConnector {
      */
     _makeUrl(path, queryParameters = {}) {
         const queryString = this._convertQueryParametersToString(queryParameters);
+        return this._mauticBaseUrl + '/api' + path + (queryString ? '?' + queryString : '');
+    }
+
+    /**
+     * @param {string} path The part after the domain and before the query string.
+     * @param {Object<string, string>?} queryParameters As key-value pairs.
+     * @returns {string} The assembled URL.
+     * @private
+     */
+    _makeQueryUrl(path, queryParameters = {}) {
+        const queryString = this._convertQueryParametersToString2(queryParameters);
         return this._mauticBaseUrl + '/api' + path + (queryString ? '?' + queryString : '');
     }
 
@@ -277,7 +301,8 @@ class MauticConnector {
         // noinspection JSUnusedGlobalSymbols
         this.companies = {
             getCompany: companyId => this._callApi({method: 'GET', url: this._makeUrl('/companies/' + companyId + '')}),
-            listContactCompanies: () => this._callApi({method: 'GET', url: this._makeUrl('/companies')}),
+            listContactCompanies: (queryParameters) => this._callApi({method: 'GET', url: this._makeUrl('/companies', queryParameters)}),
+            queryCompanies: (queryParameters) => this._callApi({method: 'GET', url: this._makeQueryUrl('/companies', queryParameters)}),
             createCompany: queryParameters => this._callApi({method: 'POST', url: this._makeUrl('/companies/new'), body: JSON.stringify(queryParameters)}),
             editCompany: (method, queryParameters, companyId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl('/companies/' + companyId + '/edit'), body: JSON.stringify(queryParameters)}),
             deleteCompany: companyId => this._callApi({method: 'DELETE', url: this._makeUrl('/companies/' + companyId + '/delete')}),
@@ -293,6 +318,7 @@ class MauticConnector {
              * @returns {Promise<{total: int, contacts: Object<int, MauticContact>}>}
              */
             getContactByEmailAddress: emailAddress => this.contacts.listContacts({search: emailAddress}),
+            queryContacts: (queryParameters) => this._callApi({method: 'GET', url: this._makeQueryUrl('/contacts', queryParameters)}),
             listContacts: queryParameters => this._callApi({method: 'GET', url: this._makeUrl('/contacts', queryParameters)}),
             /**
              * @param {MauticUserFields} queryParameters
@@ -357,7 +383,11 @@ class MauticConnector {
             /**
              * @returns {Promise<{emails: MauticEmail[]}>}
              */
-            listEmails: () => this._callApi({method: 'GET', url: this._makeUrl('/emails')}),
+            listEmails: (queryParameters) => this._callApi({method: 'GET', url: this._makeUrl('/emails')}),
+            /**
+             * @returns {Promise<{emails: MauticEmail[]}>}
+             */
+            queryEmails: (queryParameters) => this._callApi({method: 'GET', url: this._makeQueryUrl('/emails', queryParameters)}),
             /**
              * @param {MauticEmail} queryParameters
              * @returns {Promise<{email: MauticEmail}>}
@@ -376,7 +406,7 @@ class MauticConnector {
         // noinspection JSUnusedGlobalSymbols
         this.fields = {
             getField: (fieldType, fieldId) => this._callApi({method: 'GET', url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType) + '/' + fieldId + '')}),
-            listContactFields: fieldType => this._callApi({method: 'GET', url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType))}),
+            listContactFields: (fieldType, queryParameters) => this._callApi({method: 'GET', url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType))}),
             createField: (fieldType, queryParameters) => this._callApi({method: 'POST', url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType) + '/new'), body: JSON.stringify(queryParameters)}),
             editField: (method, fieldType, queryParameters, fieldId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType) + '/' + fieldId + '/edit'), body: JSON.stringify(queryParameters)}),
             deleteField: (fieldType, fieldId) => this._callApi({method: 'DELETE', url: this._makeUrl('/fields/' + this._ensureFieldTypeIsCompanyOrContact(fieldType) + '/' + fieldId + '/delete')})
