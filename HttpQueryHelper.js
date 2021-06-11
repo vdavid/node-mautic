@@ -32,7 +32,7 @@ class HttpQueryHelper {
      */
     convertQueryParametersToString(queryParameters = {}) {
         queryParameters = (queryParameters && (typeof queryParameters === 'object')) ? queryParameters : {};
-        return Object.entries(queryParameters).map(([key, value]) => key + '=' + (Array.isArray(value) ? encodeURIComponent(value).join(',') : encodeURIComponent(value))).join('&');
+        return Object.entries(queryParameters).map(([key, value]) => Array.isArray(value) ? value.map(v => key + '[]=' + encodeURIComponent(v)).join('&') : key + '=' + encodeURIComponent(value)).join('&');
     }
     /**
      * In the name, the two instances of the word “query” mean two different things.
