@@ -274,6 +274,12 @@ class MauticConnector {
              */
             editContact: (method, queryParameters, contactId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl('/contacts/' + contactId + '/edit'), body: JSON.stringify(this._httpQueryHelper.removeUndefinedValues({...queryParameters, overwriteWithBlank: true}))}),
             /**
+             * @param {'PUT'|'PATCH'} method
+             * @param {MauticUserFields} queryParameters
+             * @returns {Promise<[{contact: MauticContact}]>}
+             */
+            editBatchContact: (method, queryParameters) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl("/contacts/batch/edit"), body: JSON.stringify(queryParameters)}),
+            /**
              * @param {int} contactId
              * @returns {Promise<{contact: MauticContact}>}
              */
