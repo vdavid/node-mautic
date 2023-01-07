@@ -1,7 +1,7 @@
 {
-  "name": "node-mautic",
-  "version": "1.2.7",
-  "description": "A Node.js Mautic API implemented with ES6 + async/await",
+  "name": "cf-worker-mautic",
+  "version": "1.0.0",
+  "description": "A Cloudflare Worker Friendly Mautic API implemented with ES6 + async/await",
   "main": "MauticConnector.js",
   "scripts": {
     "test": "test"
@@ -11,6 +11,8 @@
     "url": "git+https://github.com/vdavid/node-mautic.git"
   },
   "keywords": [
+    "cloudflare worker",
+    "cf worker",
     "mautic",
     "node.js",
     "es6",
@@ -20,18 +22,15 @@
     "class",
     "library"
   ],
-  "author": "David Veszelovszki",
+  "author": "David Harvey",
   "license": "Apache-2.0",
-  "dependencies": {
-    "node-fetch": "^2.6.1"
-  },
   "devDependencies": {
     "@types/jest": "^27.0.2",
     "jest": "^27.3.1"
   },
   "bugs": {
-    "url": "https://github.com/vdavid/node-mautic/issues"
+    "url": "https://github.com/davext/cf-worker-node-mautic"
   },
-  "homepage": "https://github.com/vdavid/node-mautic#readme",
+  "homepage": "https://github.com/davext/cf-worker-node-mautic#readme",
   "types": "index.d.ts"
 }
