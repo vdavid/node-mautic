@@ -1,23 +1,27 @@
-# node-mautic
-A Node.js Mautic API implemented with ES6 + async/await.
+# cf-woker-mautic
+A Cloudflare Worker Friendly Mautic API implemented with ES6 + async/await.
 
-Tested with Node 14 and Mautic 3.1.2.
-(Should work with Node 10 and Mautic 2.7.x as well.)
+Based on
+ - NPM: https://www.npmjs.com/package/node-mautic
+ - GitHub: https://github.com/vdavid/node-mautic/
 
-This package has only 1 dependency ([node-fetch](https://github.com/node-fetch/node-fetch)), which has 0 dependencies.
+Tested with wrangler2 and Mautic 4.4.5.
+
+~~This package has only 1 dependency ([node-fetch](https://github.com/node-fetch/node-fetch)), which has 0 dependencies.~~
+This package now has 0 dependancies.
 
 ## Installation
 
 ```bash
-$ npm install node-mautic
+$ npm install cf-worker-mautic
 ```
 
 ## Usage
 
-1. Require the class
+1. Import the class
 
    ```javascript
-   const MauticConnector = require('node-mautic');
+   import MauticConnector from "node-mautic";
    ```
 
 2. Instantiate the object
@@ -42,6 +46,37 @@ $ npm install node-mautic
    ```javascript
    const campaigns = (await mauticConnector.campaigns.listCampaigns()).campaigns;
    ```
+   
+    ```javascript
+    await mautic.contacts.createContact({
+    mobile: phone,
+		tags: ["tag1","tag2"]
+   })
+   ```
+   
+    ```javascript
+    mautic.contacts.queryContacts(
+        {
+          // "email": "email@domain.com",
+          // "mobile": encodeURIComponent(phone),
+        },
+    ).then((response) => {
+    console.log(JSON.stringify(response, null, 2))
+    });
+   ```   
+   
+   
+4. Run or deploy
+
+   To try it out:
+   ```bash
+   $ wrangler2 dev
+   ```
+   To deploy it:
+   ```bash
+   $ wrangler2 publish --name name-of-the-worker
+   ```
+
 
 ## Features
 
@@ -53,7 +88,7 @@ $ npm install node-mautic
  - 6 Jest tests
 
 
-## Links
+## Based On
 
  - NPM: https://www.npmjs.com/package/node-mautic
  - GitHub: https://github.com/vdavid/node-mautic/
@@ -63,5 +98,4 @@ $ npm install node-mautic
 To run the tests, fill the `apiUrl`, `username`, and `password` fields in `MauticConnector.i.test.js`. 
 ## Thanks
 
- - To https://github.com/sambarnes90/node-mautic/ for the code I started from
- - To my company [CodeBerry](https://codeberryschool.com) that allowed me to do this work and open-source it.
+ - To https://github.com/vdavid/node-mautic/ for the original code!
