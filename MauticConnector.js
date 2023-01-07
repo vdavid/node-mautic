@@ -3,7 +3,6 @@
  *
  * Mautic API docs are here: https://developer.mautic.org/
  */
-const fetch = require('node-fetch');
 const HttpQueryHelper = require('./HttpQueryHelper');
 
 /**
