@@ -7,7 +7,7 @@ class HttpQueryHelper {
      * @returns {{method: string, url: string, body: string?, headers: {Authorization: string, "Content-Type": string}}}
      */
     addBasicAuthenticationHeader(requestParams, username, password) {
-        const base64EncodedUsernameAndPassword = Buffer.from(username + ':' + password).toString('base64');
+        const base64EncodedUsernameAndPassword = btoa(`${username}:${password}`);
         return {
             ...requestParams, headers:
                 {
