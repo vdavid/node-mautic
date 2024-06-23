@@ -265,14 +265,14 @@ class MauticConnector {
              * @param {MauticUserFields} queryParameters
              * @returns {Promise<{contact: MauticContact}>}
              */
-            createContact: queryParameters => this._callApi({method: 'POST', url: this._makeUrl('/contacts/new'), body: JSON.stringify(this._httpQueryHelper.removeUndefinedValues({...queryParameters, overwriteWithBlank: true}))}),
+            createContact: queryParameters => this._callApi({method: 'POST', url: this._makeUrl('/contacts/new'), body: JSON.stringify(this._httpQueryHelper.removeUndefinedValues({overwriteWithBlank: true, ...queryParameters}))}),
             /**
              * @param {'PUT'|'PATCH'} method
              * @param {MauticUserFields} queryParameters
              * @param {int} contactId
              * @returns {Promise<{contact: MauticContact}>}
              */
-            editContact: (method, queryParameters, contactId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl('/contacts/' + contactId + '/edit'), body: JSON.stringify(this._httpQueryHelper.removeUndefinedValues({...queryParameters, overwriteWithBlank: true}))}),
+            editContact: (method, queryParameters, contactId) => this._callApi({method: this._ensureMethodIsPutOrPatch(method), url: this._makeUrl('/contacts/' + contactId + '/edit'), body: JSON.stringify(this._httpQueryHelper.removeUndefinedValues({overwriteWithBlank: true, ...queryParameters}))}),
             /**
              * @param {int} contactId
              * @returns {Promise<{contact: MauticContact}>}
